@@ -12,6 +12,7 @@ LabBuilder::LabBuilder()
 	info_TimeSinceLastSpawn = 0;
 	info_TimeSinceLastDetonation = 0;
 	info_SpawnCount = -1;
+	info_MaxLabsPerConVec = 6;
 }
 
 LabBuilder::~LabBuilder()
@@ -24,11 +25,17 @@ LabBuilder::~LabBuilder()
 
 void LabBuilder::SetPlayerNum(int aiNum)
 {
-	// Record AI player number
-	info_PlayerNum = aiNum;
+	// Sanity check
+	if (aiNum < 0 || aiNum > 6)
+	{
+		TethysGame::AddMessage(-1, -1, "LB Error in SetPlayerNum: Player ID invalid", -1, sndDirt);
+	}
 
-	// Make AI ConVecs super OP
-
+	else
+	{
+		// Record AI player number
+		info_PlayerNum = aiNum;
+	}
 }
 
 void LabBuilder::UpdateCycle(int curTime)
@@ -47,7 +54,7 @@ void LabBuilder::UpdateCycle(int curTime)
 
 	// Check the status of all our units
 	CheckConVecs();
-	CheckLabs();
+	//CheckLabs();		// Since the labs don't do anything, checking them every 2 ticks wasted CPU time.  It's only necessary to check them right before detonating one.
 
 	// Check if it's time to spawn new ConVecs
 	CheckSpawnConVecs(curTime);
@@ -64,20 +71,29 @@ void LabBuilder::CheckConVecs()
 	std::vector<ConVec>::iterator i = units_ConVecList.begin();
 	while (i != units_ConVecList.end())
 	{
-		if (!i->CV.IsLive())
+		if (!i->GetHandle().IsLive() || i->GetHandle().GetType() != mapConVec /*|| (i->GetHandle().CreatorID() != info_PlayerNum && !i->IsDebug())*/)
 		{
 			i = units_ConVecList.erase(i);
 		}
-		else if (i->CV.OwnerID() != info_PlayerNum)
+		else if (i->GetHandle().OwnerID() != info_PlayerNum && !i->IsDebug())
 		{
-			// Doom mode (to do, once AI ConVecs are made immune to EMP and StickyFoam)
-			i->CV.DoSelfDestruct();
+			// Doom mode (to do, once I figure out how to make Advanced Lab crash into player bases like meteors)
+			// In the meantime, just self-destruct the ConVec and silently spawn Blight
+			GameMap::SetVirusUL(i->GetHandle().Location(), 1);
+			TethysGame::SetMicrobeSpreadSpeed(100);
+
+			#ifdef _DEBUG
+			TethysGame::AddMessage(i->GetHandle(), "Blight spawned", -1, sndBeep5);
+			#endif
+
+			i->GetHandle().DoSelfDestruct();
 			i = units_ConVecList.erase(i);
+			
 		}
 		else
 		{
 			i->CheckStatus();
-			i->CV.SetDamage(0);
+			i->GetHandle().SetDamage(0);
 			i++;
 		}
 	}
@@ -90,7 +106,7 @@ void LabBuilder::CheckLabs()
 	std::vector<UnitEx>::iterator i = units_LabList.begin();
 	while (i != units_LabList.end())
 	{
-		if (!i->IsLive())
+		if (!i->IsLive() || i->OwnerID() != info_PlayerNum || i->GetType() != mapAdvancedLab)
 		{
 			i = units_LabList.erase(i);
 		}
@@ -127,6 +143,9 @@ void LabBuilder::CheckDetonateLab(int curTime)
 		// Update the last detonation time
 		info_TimeSinceLastDetonation = curTime;
 
+		// Update the lab list
+		CheckLabs();
+
 		// Pick a lab at random to detonate (if one exists)
 		DetonateRandomLab();
 	}
@@ -138,7 +157,10 @@ void LabBuilder::DetonateRandomLab()
 	{
 		int labIndex = TethysGame::GetRand(units_LabList.size());
 		units_LabList[labIndex].DoDeath();
+
+		#ifdef _DEBUG
 		TethysGame::AddMessage(units_LabList[labIndex].Location().x * 32, units_LabList[labIndex].Location().y * 32, "Lab detonated", -1, sndBigexp1);
+		#endif
 	}
 }
 
@@ -169,7 +191,7 @@ void LabBuilder::AnalyzeMap()
 		}
 	}
 
-	// ** Insert analysis code here **
+	// ** To Do: Insert analysis code here **
 
 	// Test
 	/*
@@ -196,7 +218,7 @@ void LabBuilder::SetSpawnDelay(int ticksBetweenSpawns)
 {
 	if (ticksBetweenSpawns < 0)
 	{
-		TethysGame::AddMessage(-1, -1, "LB Error: Invalid spawn delay", -1, sndDirt);
+		TethysGame::AddMessage(-1, -1, "LB Error in SetSpawnDelay: Invalid spawn delay", -1, sndDirt);
 	}
 	else
 	{
@@ -208,7 +230,7 @@ void LabBuilder::SetDetonationDelay(int ticksBetweenDetonations)
 {
 	if (ticksBetweenDetonations < 0)
 	{
-		TethysGame::AddMessage(-1, -1, "LB Error: Invalid detonation delay", -1, sndDirt);
+		TethysGame::AddMessage(-1, -1, "LB Error in SetDetonationDelay: Invalid detonation delay", -1, sndDirt);
 	}
 	else
 	{
@@ -220,11 +242,71 @@ void LabBuilder::SetSpawnCount(int newSpawnCount)
 {
 	if (newSpawnCount < 0)
 	{
-		TethysGame::AddMessage(-1, -1, "LB Error: Invalid spawn count", -1, sndDirt);
+		TethysGame::AddMessage(-1, -1, "LB Error in SetSpawnCount: Invalid spawn count", -1, sndDirt);
 	}
 	else
 	{
 		info_SpawnCount = newSpawnCount;
+	}
+}
+
+void LabBuilder::SetMaxLabsPerConVec(int newMaximum)
+{
+	if (newMaximum < 1)
+	{
+		TethysGame::AddMessage(-1, -1, "LB Error in SetMaxLabsPerConVec: Invalid argument", -1, sndDirt);
+	}
+	else
+	{
+		info_MaxLabsPerConVec = newMaximum;
+	}
+}
+
+void LabBuilder::SetConVecStats(int speed, int turnRate, int prodRate)
+{
+	// Sanity checks
+	if (info_PlayerNum == -1)
+	{
+		TethysGame::AddMessage(-1, -1, "LB Error in SetConVecStats: AI not init'd", -1, sndDirt);
+	}
+	else if (speed < 0)
+	{
+		TethysGame::AddMessage(-1, -1, "LB Error in SetConVecStats: Invalid move speed", -1, sndDirt);
+	}
+	else if (turnRate < 0)
+	{
+		TethysGame::AddMessage(-1, -1, "LB Error in SetConVecStats: Invalid turn rate", -1, sndDirt);
+	}
+	else if (prodRate < 0)
+	{
+		TethysGame::AddMessage(-1, -1, "LB Error in SetConVecStats: Invalid production rate", -1, sndDirt);
+	}
+
+	else
+	{
+		OP2UnitInfo *convecPtr = unitInfoArray[mapConVec];
+		convecPtr->playerData[info_PlayerNum].moveSpeed = speed;
+		convecPtr->playerData[info_PlayerNum].turnRate = turnRate;
+		convecPtr->playerData[info_PlayerNum].productionRate = prodRate;
+	}
+}
+
+void LabBuilder::SetAdvancedLabStats(int buildTime)
+{
+	// Sanity checks
+	if (info_PlayerNum == -1)
+	{
+		TethysGame::AddMessage(-1, -1, "LB Error in SetAdvancedLabStats: AI not init'd", -1, sndDirt);
+	}
+	else if (buildTime < 0)
+	{
+		TethysGame::AddMessage(-1, -1, "LB Error in SetAdvancedLabStats: Invalid build time", -1, sndDirt);
+	}
+
+	else
+	{
+		OP2UnitInfo *advLabPtr = unitInfoArray[mapAdvancedLab];
+		advLabPtr->playerData[info_PlayerNum].buildTime = buildTime;
 	}
 }
 
@@ -239,72 +321,71 @@ void LabBuilder::SpawnConVec()
 		candidate = LOCATION(TethysGame::GetRand(map_MapSize.x), TethysGame::GetRand(map_MapSize.y));
 		if (TileIsPassable(candidate, false))
 		{
-			// Only count attempts where we found a a spot for the ConVec.
+			// Only count attempts where we found a a spot for the ConVec but not for the lab.
 			numAttempts++;
-			canBuildLabHere = true;
-			LOCATION labCheck = LOCATION(candidate.x - 4, candidate.y - 4);
-			if (labCheck.x < 0)
-			{
-				labCheck.x = map_MapSize.x - 4 + candidate.x;
-			}
-			LOCATION checkedTile = labCheck;
-			while (canBuildLabHere &&
-				   !(checkedTile.x == candidate.x && checkedTile.y == candidate.y))
-			{
-				// Normally, if another unit exists on a tile, it will be considered blocked.  Units on padding tiles won't block construction though, so skip that check for those tiles.
-				bool isPadding = (checkedTile.x == labCheck.x || checkedTile.x == candidate.x ||
-					              checkedTile.y == labCheck.y || checkedTile.y == candidate.y);
-				if (!TileIsPassable(checkedTile, isPadding))
-				{
-					canBuildLabHere = false;
-				}
-
-				// Move to the next tile.
-				checkedTile.x += 1;
-
-				// Adjust coordinates for world maps.
-				if (checkedTile.x > map_MapSize.x)
-				{
-					checkedTile.x -= map_MapSize.x;		// Modulo division would cause us to look at the wrong value for the right-most tile of the map
-				}
-
-				// Check if we're at the end of the row and adjust search tile to the start of the next row if so.
-				if (checkedTile.x > candidate.x)
-				{
-					checkedTile.x = labCheck.x;
-					checkedTile.y++;
-				}
-			}
+			canBuildLabHere = CheckLabPlacement(candidate);
 		}
 	} while (!canBuildLabHere && numAttempts < 1000);
 
-	// Adjust spawn tile
-	LOCATION spawnAt;
-	if (map_MapSize.x < 512)
-	{
-		spawnAt = LOCATION(candidate.x + 31, candidate.y - 1);
-	}
-	else
-	{
-		spawnAt = LOCATION(candidate.x - 1, candidate.y - 1);
-	}
-
 	UnitEx Unit1;
-	TethysGame::CreateUnit(Unit1, mapConVec, spawnAt, info_PlayerNum, mapAdvancedLab, 3);
-	Unit1.DoSetLights(1);
-	Unit1.DoBuild(mapAdvancedLab, spawnAt);
+	TethysGame::CreateUnit(Unit1, mapConVec, candidate, info_PlayerNum, mapAdvancedLab, 3);
+	if (!TethysGame::UsesDayNight())
+	{
+		Unit1.DoSetLights(1);
+	}
+	OP2Unit *internalUnit = &(*unitArray)[Unit1.unitID];
+	internalUnit->flags &= ~UNIT_CANBEDAMAGED;
+	Unit1.DoBuild(mapAdvancedLab, candidate);
 	ConVec newConVec(Unit1, this);
 	units_ConVecList.push_back(newConVec);
 
-	// Debug
+	#ifdef _DEBUG
 	if (canBuildLabHere)
 	{
-		TethysGame::AddMessage(spawnAt.x * 32, spawnAt.y * 32, "ConVec spawned", 0, sndBeep2);
+		TethysGame::AddMessage(candidate.x * 32, candidate.y * 32, "ConVec spawned", 0, sndBeep2);
 	}
 	else
 	{
-		TethysGame::AddMessage(spawnAt.x * 32, spawnAt.y * 32, "ConVec spawned (could not find lab placement)", 0, sndBeep2);
+		TethysGame::AddMessage(candidate.x * 32, candidate.y * 32, "ConVec spawned (could not find lab placement)", 0, sndBeep2);
 	}
+	#endif
+}
+
+bool LabBuilder::CheckLabPlacement(LOCATION candidate)
+{
+	LOCATION labCheck = LOCATION(candidate.x - 4, candidate.y - 4);
+	if (labCheck.x < 0)
+	{
+		labCheck.x = map_MapSize.x - 4 + candidate.x;
+	}
+	LOCATION checkedTile = labCheck;
+	while (checkedTile.x <= candidate.x && checkedTile.y <= candidate.y)
+	{
+		// Normally, if another unit exists on a tile, it will be considered blocked.  Units on padding tiles won't block construction though, so skip that check for those tiles.
+		bool isPadding = (checkedTile.x == labCheck.x || checkedTile.x == candidate.x ||
+			checkedTile.y == labCheck.y || checkedTile.y == candidate.y);
+		if (!TileIsPassable(checkedTile, isPadding))
+		{
+			return false;
+		}
+
+		// Move to the next tile.
+		checkedTile.x += 1;
+
+		// Adjust coordinates for world maps.
+		if (checkedTile.x > map_MapSize.x)
+		{
+			checkedTile.x -= map_MapSize.x;
+		}
+
+		// Check if we're at the end of the row and adjust search tile to the start of the next row if so.
+		if (checkedTile.x == candidate.x + 1)
+		{
+			checkedTile.x = labCheck.x;
+			checkedTile.y++;
+		}
+	}
+	return true;
 }
 
 void LabBuilder::AddLab(UnitEx newLab)
@@ -327,18 +408,6 @@ bool LabBuilder::TileIsPassable(LOCATION tile, bool ignoreUnits)
 		return false;
 	}
 
-	// Adjust tile offsets.
-    if (map_MapSize.x < 512)
-	{
-		tile.x += 31;
-		tile.y -= 1;
-	}
-	else
-	{
-		tile.x -= 1;
-		tile.y -= 1;
-	}
-
 	// Check if tile is impassable or has a unit on it.
 	int type = GameMap::GetCellType(tile);
 	if (type == cellImpassible1 ||
@@ -346,7 +415,10 @@ bool LabBuilder::TileIsPassable(LOCATION tile, bool ignoreUnits)
 		type == cellNorthCliffs ||
 		type == cellCliffsHighSide ||
 		type == cellCliffsLowSide ||
-		(!ignoreUnits && GameMapEx::GetTileEx(tile).wallOrBuilding) ||
+		type == cellVentsAndFumaroles ||
+		GameMapEx::GetTileEx(tile).lava ||
+		GameMapEx::GetTileEx(tile).microbe ||
+		GameMapEx::GetTileEx(tile).wallOrBuilding ||
 		(!ignoreUnits && GameMapEx::GetTileEx(tile).unitIndex > 0))
 	{
 		return false;
@@ -355,4 +427,16 @@ bool LabBuilder::TileIsPassable(LOCATION tile, bool ignoreUnits)
 	{
 		return true;
 	}
+}
+
+void LabBuilder::CreateDebugConVec(LOCATION spawnAt)
+{
+#ifdef _DEBUG
+	UnitEx Unit1;
+	TethysGame::CreateUnit(Unit1, mapConVec, spawnAt, 0, mapAdvancedLab, 3);
+	//Unit1.DoSetLights(1);
+	//Unit1.DoBuild(mapAdvancedLab, spawnAt);
+	ConVec newConVec(Unit1, this, true);
+	units_ConVecList.push_back(newConVec);
+#endif
 }
