@@ -13,6 +13,8 @@ LabBuilder::LabBuilder()
 	info_TimeSinceLastDetonation = 0;
 	info_SpawnCount = -1;
 	info_MaxLabsPerConVec = 6;
+	info_UnitToBuild = mapAdvancedLab;
+	info_okTypes.push_back(mapAdvancedLab);
 }
 
 LabBuilder::~LabBuilder()
@@ -59,7 +61,19 @@ void LabBuilder::UpdateCycle(int curTime)
 	// Check if it's time to spawn new ConVecs
 	CheckSpawnConVecs(curTime);
 
-	// Check if it's time to detonate an Advanced Lab
+	// Check if it's time to detonate an Advanced Lab (or if we're approaching the unit limit and need to free up tons of units quickly)
+	if (((OP2Map*)mapObj)->numUnits > UNIT_LIMIT_SAFETY)
+	{
+		#ifdef _DEBUG
+		TethysGame::AddMessage(-1, -1, "Approaching unit limit!  Detonating labs...", -1, sndBigexp3);
+		#endif
+			
+		for (int i = 0; i < (TethysGame::GetRand(9) + 10); i++)
+		{
+			DetonateRandomLab();
+		}
+	}
+
 	CheckDetonateLab(curTime);
 }
 
@@ -106,7 +120,7 @@ void LabBuilder::CheckLabs()
 	std::vector<UnitEx>::iterator i = units_LabList.begin();
 	while (i != units_LabList.end())
 	{
-		if (!i->IsLive() || i->OwnerID() != info_PlayerNum || i->GetType() != mapAdvancedLab)
+		if (!i->IsLive() || i->OwnerID() != info_PlayerNum || !ValidStructure(i->GetType()))
 		{
 			i = units_LabList.erase(i);
 		}
@@ -310,6 +324,47 @@ void LabBuilder::SetAdvancedLabStats(int buildTime)
 	}
 }
 
+void LabBuilder::SetStructureBuildTime(map_id building, int buildTime)
+{
+	// Sanity checks
+	if (info_PlayerNum == -1)
+	{
+		TethysGame::AddMessage(-1, -1, "LB Error in SetStructureBuildTime: AI not init'd", -1, sndDirt);
+	}
+	else if (buildTime < 0)
+	{
+		TethysGame::AddMessage(-1, -1, "LB Error in SetStructureBuildTime: Invalid build time", -1, sndDirt);
+	}
+
+	else
+	{
+		OP2UnitInfo *advLabPtr = unitInfoArray[building];
+		advLabPtr->playerData[info_PlayerNum].buildTime = buildTime;
+	}
+}
+
+void LabBuilder::SetPayloadBuilding(map_id newBuilding)
+{
+	// Sanity checks
+	if (info_PlayerNum == -1)
+	{
+		TethysGame::AddMessage(-1, -1, "LB Error in SetPayloadBuilding: AI not init'd", -1, sndDirt);
+	}
+	else if (newBuilding != mapAdvancedLab && newBuilding != mapMagmaWell && newBuilding != mapSpaceport)
+	{
+		TethysGame::AddMessage(-1, -1, "LB Error in SetPayloadBuilding: Invalid building!  How about one that explodes?", -1, sndDirt);
+	}
+
+	else
+	{
+		info_UnitToBuild = newBuilding;
+		if (!ValidStructure(newBuilding))
+		{
+			info_okTypes.push_back(newBuilding);
+		}
+	}
+}
+
 void LabBuilder::SpawnConVec()
 {
 	LOCATION candidate;
@@ -328,14 +383,14 @@ void LabBuilder::SpawnConVec()
 	} while (!canBuildLabHere && numAttempts < 1000);
 
 	UnitEx Unit1;
-	TethysGame::CreateUnit(Unit1, mapConVec, candidate, info_PlayerNum, mapAdvancedLab, 3);
+	TethysGame::CreateUnit(Unit1, mapConVec, candidate, info_PlayerNum, info_UnitToBuild, 3);
 	if (!TethysGame::UsesDayNight())
 	{
 		Unit1.DoSetLights(1);
 	}
 	OP2Unit *internalUnit = &(*unitArray)[Unit1.unitID];
 	internalUnit->flags &= ~UNIT_CANBEDAMAGED;
-	Unit1.DoBuild(mapAdvancedLab, candidate);
+	Unit1.DoBuild(info_UnitToBuild, candidate);
 	ConVec newConVec(Unit1, this);
 	units_ConVecList.push_back(newConVec);
 
@@ -353,10 +408,12 @@ void LabBuilder::SpawnConVec()
 
 bool LabBuilder::CheckLabPlacement(LOCATION candidate)
 {
-	LOCATION labCheck = LOCATION(candidate.x - 4, candidate.y - 4);
+	int xTilesNeeded = unitInfoArray[info_UnitToBuild]->xSize + 1,
+		yTilesNeeded = unitInfoArray[info_UnitToBuild]->ySize + 1;
+	LOCATION labCheck = LOCATION(candidate.x - xTilesNeeded, candidate.y - yTilesNeeded);
 	if (labCheck.x < 0)
 	{
-		labCheck.x = map_MapSize.x - 4 + candidate.x;
+		labCheck.x = map_MapSize.x - xTilesNeeded + candidate.x;
 	}
 	LOCATION checkedTile = labCheck;
 	while (checkedTile.x <= candidate.x && checkedTile.y <= candidate.y)
@@ -388,10 +445,15 @@ bool LabBuilder::CheckLabPlacement(LOCATION candidate)
 	return true;
 }
 
+bool LabBuilder::ValidStructure(map_id toCheck)
+{
+	return (std::find(info_okTypes.begin(), info_okTypes.end(), toCheck) != info_okTypes.end());
+}
+
 void LabBuilder::AddLab(UnitEx newLab)
 {
 	// Sanity check
-	if (newLab.OwnerID() == info_PlayerNum && newLab.GetType() == mapAdvancedLab)
+	if (newLab.OwnerID() == info_PlayerNum && ValidStructure(newLab.GetType()))
 	{
 		units_LabList.push_back(newLab);
 	}
@@ -433,7 +495,7 @@ void LabBuilder::CreateDebugConVec(LOCATION spawnAt)
 {
 #ifdef _DEBUG
 	UnitEx Unit1;
-	TethysGame::CreateUnit(Unit1, mapConVec, spawnAt, 0, mapAdvancedLab, 3);
+	TethysGame::CreateUnit(Unit1, mapConVec, spawnAt, 0, info_UnitToBuild, 3);
 	//Unit1.DoSetLights(1);
 	//Unit1.DoBuild(mapAdvancedLab, spawnAt);
 	ConVec newConVec(Unit1, this, true);

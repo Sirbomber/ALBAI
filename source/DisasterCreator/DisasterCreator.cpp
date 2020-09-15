@@ -85,11 +85,11 @@ void DisasterCreator::RollRandom()
 	{
 		target = trgRandom;
 	}
-	else if (rv < zoneWeight)
+	else if (rv < randWeight + zoneWeight)
 	{
 		target = trgZone;
 	}
-	else if (rv < plyrWeight)
+	else if (rv < randWeight + zoneWeight + plyrWeight)
 	{
 		target = trgPlayer;
 	}

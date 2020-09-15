@@ -7,8 +7,12 @@
 #include <OP2Helper.h>
 #include <HFL.h>
 #include <OP2Types\OP2Units.h>
+#include <OP2Types\OP2Map.h>
 #include <vector>
 #include <map>
+#include <algorithm>
+
+const int UNIT_LIMIT_SAFETY = 1800;		// OP2's hardcoded unit limit is 2048.  The game will crash if we try to exceed that value.  Blow some labs up if we start to approach the limit.
 
 class ConVec;
 
@@ -37,11 +41,19 @@ public:
 	void SetMaxLabsPerConVec(int newMaximum);
 	void SetConVecStats(int speed = 4, int turnRate = 4, int prodRate = 128);
 	void SetAdvancedLabStats(int buildTime = 1800);
+	void SetStructureBuildTime(map_id building, int buildTime);		// Generic version of SetAdvancedLabStats
+	void SetPayloadBuilding(map_id newBuilding = mapAdvancedLab);
 
 	// ConVec helper functions
 	bool CheckLabPlacement(LOCATION candidate);
 	int GetMaxLabsPerConVec() { return info_MaxLabsPerConVec; }
+	map_id GetPayloadBuilding() { return info_UnitToBuild; }
+	bool ValidStructure(map_id toCheck);
 
+	// Etc
+	int GetPlayerNum() { return info_PlayerNum; }
+
+	// Debugging
 	void CreateDebugConVec(LOCATION spawnAt);	// Creates a ConVec under player control that the AI thinks is its own.  For debugging the ConVec update cycle.  Fails silently in non-debug builds.
 
 private:
@@ -57,6 +69,8 @@ private:
 	int info_SpawnCount;				// How many ConVecs to spawn each time.
 	int info_MaxLabsPerConVec;			// Maximum number* of Advanced Labs a ConVec can deploy before automatically detonating.  Default is 6.
 	                                    // * - Actually this number +1 since the first Advanced Lab gets 100% health (and may be more if lab's HP doesn't divide cleanly).
+	map_id info_UnitToBuild;			// What unit should get loaded into ConVecs.  Advanced Lab by default.  But Magma Wells also explode, and fit in smaller spaces.  Just a thought.
+	std::vector<map_id> info_okTypes;	// List of all structure types that have ever been buildable by the AI.
 
 	// Use this function to get the info for a tile.
 	inline int GetMapIndex(int x, int y) { return map_MapSize.x * y + x; }

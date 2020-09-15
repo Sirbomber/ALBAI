@@ -1,86 +1,135 @@
 #include "Bases.h"
 
-void SetupBase4(int p)
+void SetupBase4(int p, int aiNum)
 {
 	Unit x;
-	Player[p].CenterViewOn(71+31, 220-1);
+	Player[p].CenterViewOn(235 - 1, 108 - 1);
 
 	// Structures
-	TethysGame::CreateUnit(x, mapCommandCenter, LOCATION(71+31,220-1), p, mapNone, 0);
-	TethysGame::CreateUnit(x, mapStructureFactory, LOCATION(56+31,228-1), p, mapNone, 0);
-	switch (Player[p].Difficulty())
-	{
-		case 0:
-			x.SetFactoryCargo(0, mapStructureFactory, mapNone);
-			x.SetFactoryCargo(1, mapCommandCenter, mapNone);
-			x.SetFactoryCargo(2, mapAgridome, mapNone);
-			break;
-		case 1:
-			x.SetFactoryCargo(0, mapTokamak, mapNone);
-			x.SetFactoryCargo(1, mapAgridome, mapNone);
-			break;
-		case 2:
-			x.SetFactoryCargo(0, mapBasicLab, mapNone);
-			break;
-		default:
-			x.SetFactoryCargo(5, mapSpaceport, mapNone);
-			break;
-	}
-	TethysGame::CreateUnit(x, mapCommonOreSmelter, LOCATION(61+31,228-1), p, mapNone, 0);
-	TethysGame::CreateUnit(x, mapAgridome, LOCATION(71+31,217-1), p, mapNone, 0);
-	TethysGame::CreateUnit(x, mapAgridome, LOCATION(71+31,223-1), p, mapNone, 0);
-	TethysGame::CreateUnit(x, mapCommonStorage, LOCATION(64+31,228-1), p, mapNone, 0);
-	TethysGame::CreateUnit(x, mapRobotCommand, LOCATION(68+31,220-1), p, mapNone, 0);
-	TethysGame::CreateUnit(x, mapResidence, LOCATION(64+31,220-1), p, mapNone, 0);
-	TethysGame::CreateUnit(x, mapResidence, LOCATION(61+31,220-1), p, mapNone, 0);
-	TethysGame::CreateUnit(x, mapResidence, LOCATION(61+31,223-1), p, mapNone, 0);
-	TethysGame::CreateUnit(x, mapTokamak, LOCATION(69+31,211-1), p, mapNone, 0);
-	TethysGame::CreateUnit(x, mapTokamak, LOCATION(73+31,211-1), p, mapNone, 0);
-	TethysGame::CreateBeacon(mapMiningBeacon, 67+31, 235-1, 0, 0, 0);
-	TethysGame::CreateUnit(x, mapCommonOreMine, LOCATION(67+31,235-1), p, mapNone, 0);
+	TethysGame::CreateUnit(x, mapCommandCenter, LOCATION(235 - 1, 108 - 1), p, mapNone, 0);
+	TethysGame::CreateUnit(x, mapStructureFactory, LOCATION(235 - 1, 111 - 1), p, mapNone, 0);
+	x.SetFactoryCargo(0, mapAtheistBuildingExplosion, mapNone);
+	x.SetFactoryCargo(1, mapAtheistBuildingExplosion, mapNone);
+	x.SetFactoryCargo(2, mapAtheistBuildingExplosion, mapNone);
+	x.SetFactoryCargo(3, mapAtheistBuildingExplosion, mapNone);
+	x.SetFactoryCargo(4, mapAtheistBuildingExplosion, mapNone);
+	x.SetFactoryCargo(5, mapAtheistBuildingExplosion, mapNone);
+	TethysGame::CreateUnit(x, mapCommonOreSmelter, LOCATION(235 - 1, 115 - 1), p, mapNone, 0);
+	TethysGame::CreateUnit(x, mapAgridome, LOCATION(235 - 1, 105 - 1), p, mapNone, 0);
+	TethysGame::CreateUnit(x, mapTokamak, LOCATION(227 - 1, 104 - 1), p, mapNone, 0);
+
+	TethysGame::CreateBeacon(mapMiningBeacon, 237 - 1, 119 - 1, 0, 1, 1);
+	TethysGame::CreateUnit(x, mapCommonOreMine, LOCATION(237 - 1, 119 - 1), p, mapNone, 0);
 
 	// Vehicles
-	TethysGame::CreateUnit(x, mapConVec, LOCATION(69+31, 221-1), p, mapNone, 4);
-		x.DoSetLights(1);
-	TethysGame::CreateUnit(x, mapConVec, LOCATION(69+31, 224-1), p, mapNone, 4);
-		x.DoSetLights(1);
-	TethysGame::CreateUnit(x, mapConVec, LOCATION(53+31, 230-1), p, mapNone, 4);
-		x.DoSetLights(1);
-	TethysGame::CreateUnit(x, mapConVec, LOCATION(58+31, 230-1), p, mapNone, 4);
-		x.DoSetLights(1);
-	TethysGame::CreateUnit(x, mapConVec, LOCATION(67+31, 212-1), p, mapNone, 4);
-		x.DoSetLights(1);
-	TethysGame::CreateUnit(x, mapScout, LOCATION(75+31, 224-1), p, mapNone, 4);
-		x.DoSetLights(1);
-	TethysGame::CreateUnit(x, mapEvacuationTransport, LOCATION(74+31, 219-1), p, mapNone, 4);
-		x.DoSetLights(1);
-	TethysGame::CreateUnit(x, mapEvacuationTransport, LOCATION(74+31, 221-1), p, mapNone, 4);
-		x.DoSetLights(1);
-	TethysGame::CreateUnit(x, mapCargoTruck, LOCATION(62+31, 235-1), p, mapNone, 4);
-		x.DoSetLights(1);
-	TethysGame::CreateUnit(x, mapCargoTruck, LOCATION(62+31, 233-1), p, mapNone, 4);
-		x.DoSetLights(1);
-	TethysGame::CreateUnit(x, mapEarthworker, LOCATION(65+31, 229-1), p, mapNone, 4);
-		x.DoSetLights(1);
-	TethysGame::CreateUnit(x, mapRoboMiner, LOCATION(66+31, 228-1), p, mapNone, 4);
-		x.DoSetLights(1);
-	TethysGame::CreateUnit(x, mapRoboSurveyor, LOCATION(66+31, 230-1), p, mapNone, 4);
-		x.DoSetLights(1);
-	TethysGame::CreateUnit(x, mapRoboDozer, LOCATION(67+31, 229-1), p, mapNone, 4);
-		x.DoSetLights(1);
+	TethysGame::CreateUnit(x, mapConVec, LOCATION(216 - 1, 117 - 1), p, mapCommandCenter, 4);
+	x.DoSetLights(1);
 
-	// Tubes
-	TethysGame::CreateWallOrTube(66+31,220-1,0, mapTube);
-	CreateTubeOrWallLine(61+31, 225-1, 61+31, 226-1, mapTube);
+	TethysGame::CreateUnit(x, mapConVec, LOCATION(224 - 1, 109 - 1), p, mapStructureFactory, 4);
+	x.DoSetLights(1);
 
+	TethysGame::CreateUnit(x, mapConVec, LOCATION(223 - 1, 117 - 1), p, mapCommonOreSmelter, 4);
+	x.DoSetLights(1);
+
+	TethysGame::CreateUnit(x, mapConVec, LOCATION(220 - 1, 105 - 1), p, mapTokamak, 3);
+	x.DoSetLights(1);
+
+	TethysGame::CreateUnit(x, mapConVec, LOCATION(221 - 1, 113 - 1), p, mapAgridome, 4);
+	x.DoSetLights(1);
+
+	if (Player[p].IsEden())
+	{
+		TethysGame::CreateUnit(x, mapConVec, LOCATION(226 - 1, 112 - 1), p, mapBasicLab, 4);
+	}
+	else
+	{
+		//TethysGame::CreateUnit(x, mapConVec, LOCATION(223 - 1, 112 - 1), p, mapBasicLab, 4);
+		TethysGame::CreateUnit(x, mapConVec, LOCATION(226 - 1, 112 - 1), p, mapBasicLab, 4);
+	}
+	x.DoSetLights(1);
+	if (Player[p].Difficulty() == 0)
+	{
+		x.SetCargo(mapStandardLab, mapNone);
+	}
+
+	TethysGame::CreateUnit(x, mapScout, LOCATION(229 - 1, 121 - 1), p, mapNone, 4);
+	x.DoSetLights(1);
+
+	TethysGame::CreateUnit(x, mapEvacuationTransport, LOCATION(219 - 1, 118 - 1), p, mapNone, 4);
+	x.DoSetLights(1);
+
+	TethysGame::CreateUnit(x, mapEvacuationTransport, LOCATION(227 - 1, 108 - 1), p, mapNone, 7);
+	x.DoSetLights(1);
+
+	TethysGame::CreateUnit(x, mapCargoTruck, LOCATION(223 - 1, 107 - 1), p, mapNone, 3);
+	x.DoSetLights(1);
+	x.SetTruckCargo(truckFood, 1000);
+
+	TethysGame::CreateUnit(x, mapCargoTruck, LOCATION(224 - 1, 105 - 1), p, mapNone, 4);
+	x.DoSetLights(1);
+	x.SetTruckCargo(truckFood, 1000);
+
+	if (Player[p].Difficulty() < 2)
+	{
+		TethysGame::CreateUnit(x, mapCargoTruck, LOCATION(226 - 1, 106 - 1), p, mapNone, 5);
+		x.DoSetLights(1);
+		x.SetTruckCargo(truckFood, 1000);
+	}
+
+	TethysGame::CreateUnit(x, mapCargoTruck, LOCATION(226 - 1, 116 - 1), p, mapNone, 4);
+	x.DoSetLights(1);
+	x.SetTruckCargo(truckCommonMetal, 1000);
+
+	TethysGame::CreateUnit(x, mapCargoTruck, LOCATION(226 - 1, 117 - 1), p, mapNone, 4);
+	x.DoSetLights(1);
+	x.SetTruckCargo(truckCommonMetal, 1000);
+
+	if (Player[p].Difficulty() == 0)
+	{
+		TethysGame::CreateUnit(x, mapCargoTruck, LOCATION(227 - 1, 116 - 1), p, mapNone, 4);
+		x.DoSetLights(1);
+		x.SetTruckCargo(truckCommonMetal, 1000);
+	}
+
+	TethysGame::CreateUnit(x, mapEarthworker, LOCATION(221 - 1, 124 - 1), p, mapNone, 3);
+	x.DoSetLights(1);
+
+	TethysGame::CreateUnit(x, mapRoboMiner, LOCATION(228 - 1, 120 - 1), p, mapNone, 4);
+	x.DoSetLights(1);
+
+	TethysGame::CreateUnit(x, mapRoboSurveyor, LOCATION(223 - 1, 121 - 1), p, mapNone, 4);
+	x.DoSetLights(1);
+	
 	// Initial resources
 	Player[p].SetKids(10);
 	Player[p].SetWorkers(35);
 	Player[p].SetScientists(20);
-	Player[p].SetOre(2000);
-	Player[p].SetFoodStored(2000);
-
-	// Initial Vehicles
+	Player[p].SetOre(1200);
+	Player[p].SetFoodStored(8000);
+	switch (Player[p].Difficulty())
+	{
+	case 0:
+		Player[p].MarkResearchComplete(2701);
+		Player[p].MarkResearchComplete(2702);
+		Player[p].MarkResearchComplete(2703);
+		Player[p].MarkResearchComplete(2704);
+		Player[p].MarkResearchComplete(2705);
+		Player[p].MarkResearchComplete(2707);
+		Player[p].MarkResearchComplete(2708);
+		Player[p].MarkResearchComplete(3401);
+		Player[p].MarkResearchComplete(3304);
+		break;
+	case 1:
+		Player[p].MarkResearchComplete(2703);
+		Player[p].MarkResearchComplete(2704);
+		Player[p].MarkResearchComplete(2707);
+		Player[p].MarkResearchComplete(3304);
+		break;
+	case 2:
+		Player[p].MarkResearchComplete(3304);
+		break;
+	}
+	// Initial vehicles
 	map_id wpn = mapMicrowave;
 	if (Player[p].IsEden())
 	{
@@ -89,45 +138,64 @@ void SetupBase4(int p)
 
 	switch (TethysGame::InitialUnits())
 	{
-		case 12:
-			TethysGame::CreateUnit(x, mapConVec, LOCATION(55+31, 224-1), p, mapNone, 0);
-				x.SetCargo(mapGuardPost, wpn);
-				x.DoSetLights(1);
-		case 11:
-			TethysGame::CreateUnit(x, mapConVec, LOCATION(54+31, 224-1), p, mapNone, 0);
-				x.SetCargo(mapGuardPost, wpn);
-				x.DoSetLights(1);
-		case 10:
-			TethysGame::CreateUnit(x, mapConVec, LOCATION(53+31, 224-1), p, mapNone, 0);
-				x.SetCargo(mapGuardPost, wpn);
-				x.DoSetLights(1);
-		case 9:
-			TethysGame::CreateUnit(x, mapTradeCenter, LOCATION(64+31, 223-1), p, mapNone, 0);
-		case 8:
-			TethysGame::CreateUnit(x, mapLynx, LOCATION(56+31, 223-1), p, wpn, 0);
-				x.DoSetLights(1);
-		case 7:
-			TethysGame::CreateUnit(x, mapLynx, LOCATION(55+31, 223-1), p, wpn, 0);
-				x.DoSetLights(1);
-		case 6:
-			TethysGame::CreateUnit(x, mapLynx, LOCATION(54+31, 223-1), p, wpn, 0);
-				x.DoSetLights(1);
-		case 5:
-			TethysGame::CreateUnit(x, mapScout, LOCATION(53+31, 223-1), p, mapNone, 0);
-				x.DoSetLights(1);
-		case 4:
-			TethysGame::CreateUnit(x, mapRoboMiner, LOCATION(56+31, 222-1), p, mapNone, 0);
-				x.DoSetLights(1);
-		case 3:
-			TethysGame::CreateUnit(x, mapConVec, LOCATION(55+31, 222-1), p, mapNone, 0);
-				x.DoSetLights(1);
-		case 2:
-			TethysGame::CreateUnit(x, mapCargoTruck, LOCATION(54+31, 222-1), p, mapNone, 0);
-				x.DoSetLights(1);
-		case 1:
-			TethysGame::CreateUnit(x, mapCargoTruck, LOCATION(53+31, 222-1), p, mapNone, 0);
-				x.DoSetLights(1);
-		default:
-			break;
+	case 12:
+		TethysGame::CreateUnit(x, mapConVec, LOCATION(225 - 1, 113 - 1), p, mapCommandCenter, 0);
+		x.DoSetLights(1);
+	case 11:
+		TethysGame::CreateUnit(x, mapRoboMiner, LOCATION(224 - 1, 113 - 1), p, mapNone, 0);
+		x.DoSetLights(1);
+	case 10:
+		TethysGame::CreateUnit(x, mapCargoTruck, LOCATION(223 - 1, 113 - 1), p, mapNone, 0);
+		x.DoSetLights(1);
+	case 9:
+		TethysGame::CreateUnit(x, mapCargoTruck, LOCATION(222 - 1, 113 - 1), p, mapNone, 0);
+		x.DoSetLights(1);
+	case 8:
+		TethysGame::CreateUnit(x, mapScout, LOCATION(225 - 1, 112 - 1), p, mapNone, 0);
+		x.DoSetLights(1);
+	case 7:
+		TethysGame::CreateUnit(x, mapLynx, LOCATION(224 - 1, 112 - 1), p, wpn, 0);
+		x.DoSetLights(1);
+	case 6:
+		TethysGame::CreateUnit(x, mapLynx, LOCATION(223 - 1, 112 - 1), p, wpn, 0);
+		x.DoSetLights(1);
+	case 5:
+		TethysGame::CreateUnit(x, mapLynx, LOCATION(222 - 1, 112 - 1), p, wpn, 0);
+		x.DoSetLights(1);
+	case 4:
+		TethysGame::CreateUnit(x, mapLynx, LOCATION(225 - 1, 111 - 1), p, mapStarflare, 0);
+		x.DoSetLights(1);
+	case 3:
+		TethysGame::CreateUnit(x, mapConVec, LOCATION(224 - 1, 111 - 1), p, mapAgridome, 0);
+		x.DoSetLights(1);
+	case 2:
+		TethysGame::CreateUnit(x, mapConVec, LOCATION(223 - 1, 111 - 1), p, mapUniversity, 0);
+		x.DoSetLights(1);
+	case 1:
+		TethysGame::CreateUnit(x, mapConVec, LOCATION(222 - 1, 111 - 1), p, mapNursery, 0);
+		x.DoSetLights(1);
+	default:
+		break;
 	}
+
+	// Auto-movement
+	PlayerVehicleEnum mover(p);
+	while (mover.GetNext(x))
+	{
+		x.DoMove(LOCATION(183 - 1, 105 - 1));
+	}
+
+	// For reference
+	TethysGame::CreateUnit(x, mapAdvancedLab, LOCATION(237 - 1, 122 - 1), aiNum, mapNone, 0);
+	TethysGame::CreateUnit(x, mapAdvancedLab, LOCATION(233 - 1, 119 - 1), aiNum, mapNone, 0);
+	x.SetDamage(250);
+	TethysGame::CreateUnit(x, mapAdvancedLab, LOCATION(230 - 1, 115 - 1), aiNum, mapNone, 0);
+	x.SetDamage(500);
+	TethysGame::CreateUnit(x, mapAdvancedLab, LOCATION(230 - 1, 111 - 1), aiNum, mapNone, 0);
+	x.SetDamage(750);
+	TethysGame::CreateUnit(x, mapAdvancedLab, LOCATION(231 - 1, 107 - 1), aiNum, mapNone, 0);
+	x.SetDamage(1000);
+	TethysGame::CreateUnit(x, mapConVec, LOCATION(233 - 1, 105 - 1), aiNum, mapAdvancedLab, 3);
+	x.DoBuild(mapAdvancedLab, LOCATION(233 - 1, 105 - 1));
+	//TethysGame::CreateUnit(x, mapLynx, LOCATION(237 - 1, 124 - 1), p, mapStarflare, 0);
 }

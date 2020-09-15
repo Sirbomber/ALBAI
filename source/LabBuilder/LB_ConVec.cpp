@@ -53,7 +53,7 @@ void ConVec::CheckStatus()
 				if (labCandidate.unitID != 0 &&
 					labCandidate.IsLive() &&
 					(labCandidate.OwnerID() == CV.OwnerID() || debug) &&
-					labCandidate.GetType() == mapAdvancedLab)
+					ai->ValidStructure(labCandidate.GetType()))
 				{
 					currentLab.unitID = labCandidate.unitID;
 					ai->AddLab(currentLab);
@@ -72,8 +72,8 @@ void ConVec::CheckStatus()
 			else
 			{
 				// Reload the ConVec and issue the build order.
-				CV.SetCargo(mapAdvancedLab, mapNone);
-				CV.DoBuild(mapAdvancedLab, deployAt);
+				CV.SetCargo(ai->GetPayloadBuilding(), mapNone);
+				CV.DoBuild(ai->GetPayloadBuilding(), deployAt);
 
 				// Automatically damage the recently-finished lab, destroying it if it would have 0 HP left.
 				int labMaxHP = currentLab.GetUnitInfo().GetHitPoints(CV.OwnerID());
@@ -121,7 +121,7 @@ void ConVec::CheckStatus()
 				}
 			}
 			// Resume course to the deploy location
-			CV.DoBuild(mapAdvancedLab, deployAt);
+			CV.DoBuild(ai->GetPayloadBuilding(), deployAt);
 		}
 	}
 
@@ -154,6 +154,8 @@ LOCATION ConVec::GetNextLabSpot(LOCATION searchFrom)
 	int attempts = 0;
 	bool keepGoing = true;
 	LOCATION toTest;
+	int xTilesNeeded = unitInfoArray[ai->GetPayloadBuilding()]->xSize + 1,
+		yTilesNeeded = unitInfoArray[ai->GetPayloadBuilding()]->ySize + 1;
 	while (keepGoing)
 	{
 		// Check lab placement in the current direction
@@ -161,35 +163,35 @@ LOCATION ConVec::GetNextLabSpot(LOCATION searchFrom)
 		{
 		// East
 		case 0:
-			toTest = LOCATION(searchFrom.x + 4 + attempts, searchFrom.y);
+			toTest = LOCATION(searchFrom.x + xTilesNeeded + attempts, searchFrom.y);
 			break;
 		// Southeast
 		case 1:
-			toTest = LOCATION(searchFrom.x + 4 + attempts, searchFrom.y + 4 + attempts);
+			toTest = LOCATION(searchFrom.x + xTilesNeeded + attempts, searchFrom.y + yTilesNeeded + attempts);
 			break;
 		// South
 		case 2:
-			toTest = LOCATION(searchFrom.x, searchFrom.y + 4 + attempts);
+			toTest = LOCATION(searchFrom.x, searchFrom.y + yTilesNeeded + attempts);
 			break;
 		// Southwest
 		case 3:
-			toTest = LOCATION(searchFrom.x - 4 - attempts, searchFrom.y + 4 + attempts);
+			toTest = LOCATION(searchFrom.x - xTilesNeeded - attempts, searchFrom.y + yTilesNeeded + attempts);
 			break;
 		// West
 		case 4:
-			toTest = LOCATION(searchFrom.x - 4 - attempts, searchFrom.y);
+			toTest = LOCATION(searchFrom.x - xTilesNeeded - attempts, searchFrom.y);
 			break;
 		// Northwest
 		case 5:
-			toTest = LOCATION(searchFrom.x - 4 - attempts, searchFrom.y - 4 - attempts);
+			toTest = LOCATION(searchFrom.x - xTilesNeeded - attempts, searchFrom.y - yTilesNeeded - attempts);
 			break;
 		// North
 		case 6:
-			toTest = LOCATION(searchFrom.x, searchFrom.y - 4 - attempts);
+			toTest = LOCATION(searchFrom.x, searchFrom.y - yTilesNeeded - attempts);
 			break;
 		// Northeast
 		case 7:
-			toTest = LOCATION(searchFrom.x + 4 + attempts, searchFrom.y - 4 - attempts);
+			toTest = LOCATION(searchFrom.x + xTilesNeeded + attempts, searchFrom.y - yTilesNeeded - attempts);
 			break;
 		}
 
