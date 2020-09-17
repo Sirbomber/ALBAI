@@ -88,6 +88,7 @@ void LabBuilder::CheckConVecs()
 		if (!i->GetHandle().IsLive() || i->GetHandle().GetType() != mapConVec /*|| (i->GetHandle().CreatorID() != info_PlayerNum && !i->IsDebug())*/)
 		{
 			i = units_ConVecList.erase(i);
+			//units_plannedLabLocations.erase(*i);
 		}
 		else if (i->GetHandle().OwnerID() != info_PlayerNum && !i->IsDebug())
 		{
@@ -450,6 +451,17 @@ bool LabBuilder::ValidStructure(map_id toCheck)
 	return (std::find(info_okTypes.begin(), info_okTypes.end(), toCheck) != info_okTypes.end());
 }
 
+void LabBuilder::RecordBuildLocation(ConVec buildCV, LOCATION buildAt)
+{
+	int xTilesNeeded = unitInfoArray[info_UnitToBuild]->xSize + 1,
+		yTilesNeeded = unitInfoArray[info_UnitToBuild]->ySize + 1;
+	MAP_RECT buildArea = MAP_RECT( buildAt.x - xTilesNeeded,
+						   buildAt.y - yTilesNeeded,
+						   buildAt.x,
+						   buildAt.y );
+	//units_plannedLabLocations[buildCV] = buildArea;
+}
+
 void LabBuilder::AddLab(UnitEx newLab)
 {
 	// Sanity check
@@ -501,4 +513,9 @@ void LabBuilder::CreateDebugConVec(LOCATION spawnAt)
 	ConVec newConVec(Unit1, this, true);
 	units_ConVecList.push_back(newConVec);
 #endif
+}
+
+bool ConVecCompare(ConVec cv1, ConVec cv2)
+{
+	return cv1.GetHandle().unitID < cv2.GetHandle().unitID;
 }

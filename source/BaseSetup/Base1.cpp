@@ -99,83 +99,17 @@ void SetupBase1(int p, int aiNum)
 	TethysGame::CreateUnit(x, mapRoboSurveyor, LOCATION(277-1, 130-1), p, mapNone, 7);
 	x.DoSetLights(1);
 
-	// Initial resources
-	Player[p].SetKids(10);
-	Player[p].SetWorkers(35);
-	Player[p].SetScientists(20);
-	Player[p].SetOre(1200);
-	Player[p].SetFoodStored(8000);
-	switch (Player[p].Difficulty())
+	if (Player[p].Difficulty() == 0)
 	{
-	case 0:
-		Player[p].MarkResearchComplete(2701);
-		Player[p].MarkResearchComplete(2702);
-		Player[p].MarkResearchComplete(2703);
-		Player[p].MarkResearchComplete(2704);
-		Player[p].MarkResearchComplete(2705);
-		Player[p].MarkResearchComplete(2707);
-		Player[p].MarkResearchComplete(2708);
-		Player[p].MarkResearchComplete(3401);
-		Player[p].MarkResearchComplete(3304);
-		break;
-	case 1:
-		Player[p].MarkResearchComplete(2703);
-		Player[p].MarkResearchComplete(2704);
-		Player[p].MarkResearchComplete(2707);
-		Player[p].MarkResearchComplete(3304);
-		break;
-	case 2:
-		Player[p].MarkResearchComplete(3304);
-		break;
-	}
-	// Initial vehicles
-	map_id wpn = mapMicrowave;
-	if (Player[p].IsEden())
-	{
-		wpn = mapLaser;
+		TethysGame::CreateUnit(x, mapEvacuationTransport, LOCATION(271 - 1, 120 - 1), p, mapNone, 0);
+		x.DoSetLights(1);
 	}
 
-	switch (TethysGame::InitialUnits())
-	{
-		case 12:
-			TethysGame::CreateUnit(x, mapConVec, LOCATION(283 - 1, 134 - 1), p, mapCommandCenter, 0);
-			x.DoSetLights(1);
-		case 11:
-			TethysGame::CreateUnit(x, mapRoboMiner, LOCATION(282 - 1, 134 - 1), p, mapNone, 0);
-			x.DoSetLights(1);
-		case 10:
-			TethysGame::CreateUnit(x, mapCargoTruck, LOCATION(281 - 1, 134 - 1), p, mapNone, 0);
-			x.DoSetLights(1);
-		case 9:
-			TethysGame::CreateUnit(x, mapCargoTruck, LOCATION(280 - 1, 134 - 1), p, mapNone, 0);
-			x.DoSetLights(1);
-		case 8:
-			TethysGame::CreateUnit(x, mapScout, LOCATION(283 - 1, 133 - 1), p, mapNone, 0);
-			x.DoSetLights(1);
-		case 7:
-			TethysGame::CreateUnit(x, mapLynx, LOCATION(282 - 1, 133 - 1), p, wpn, 0);
-			x.DoSetLights(1);
-		case 6:
-			TethysGame::CreateUnit(x, mapLynx, LOCATION(281 - 1, 133 - 1), p, wpn, 0);
-			x.DoSetLights(1); 
-		case 5:
-			TethysGame::CreateUnit(x, mapLynx, LOCATION(280 - 1, 133 - 1), p, wpn, 0);
-			x.DoSetLights(1);
-		case 4:
-			TethysGame::CreateUnit(x, mapLynx, LOCATION(283 - 1, 132 - 1), p, mapStarflare, 0);
-			x.DoSetLights(1);
-		case 3:
-			TethysGame::CreateUnit(x, mapConVec, LOCATION(282 - 1, 132 - 1), p, mapAgridome, 0);
-			x.DoSetLights(1);
-		case 2:
-			TethysGame::CreateUnit(x, mapConVec, LOCATION(281 - 1, 132 - 1), p, mapUniversity, 0);
-			x.DoSetLights(1);
-		case 1:
-			TethysGame::CreateUnit(x, mapConVec, LOCATION(280 - 1, 132 - 1), p, mapNursery, 0);
-			x.DoSetLights(1); 
-		default:
-			break;
-	}
+	// Initial resources
+	DoInitRes(p);
+
+	// Initial vehicles
+	DoInitVehicles(p, 280, 132);
 
 	// Auto-movement
 	PlayerVehicleEnum mover(p);

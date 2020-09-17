@@ -4,15 +4,16 @@
 #include <OP2Helper.h>
 
 // Base setup fx prototypes
-//void DoRandomBases();
+void DoRandomBases(int aiNum);
+void DoInitRes(int p);
+void DoInitVehicles(int p, int x, int y);
+
 void SetupBase1(int p, int aiNum);
 void SetupBase2(int p, int aiNum);
 void SetupBase3(int p, int aiNum);
 void SetupBase4(int p, int aiNum);
 void SetupBase5(int p, int aiNum);
-//void SetupBaseAI(int p);
 
-void DoQuickTestBases(int i);
 void DoQuickTestOre();
 
 void SetupVictory();

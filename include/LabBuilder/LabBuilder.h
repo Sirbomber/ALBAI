@@ -10,11 +10,12 @@
 #include <OP2Types\OP2Map.h>
 #include <vector>
 #include <map>
-#include <algorithm>
 
 const int UNIT_LIMIT_SAFETY = 1800;		// OP2's hardcoded unit limit is 2048.  The game will crash if we try to exceed that value.  Blow some labs up if we start to approach the limit.
 
 class ConVec;
+
+bool ConVecCompare(ConVec cv1, ConVec cv2);
 
 class LabBuilder
 {
@@ -49,6 +50,7 @@ public:
 	int GetMaxLabsPerConVec() { return info_MaxLabsPerConVec; }
 	map_id GetPayloadBuilding() { return info_UnitToBuild; }
 	bool ValidStructure(map_id toCheck);
+	void RecordBuildLocation(ConVec buildCV, LOCATION buildAt);
 
 	// Etc
 	int GetPlayerNum() { return info_PlayerNum; }
@@ -84,5 +86,5 @@ private:
 	std::vector<ConVec> units_ConVecList;
 	std::vector<UnitEx> units_LabList;
 	//std::vector<UnitEx> units_EarthworkerList;		// To Do: Give the AI earthworkers to tear down player walls.
-	//std::map<ConVec, MAP_RECT> units_plannedLabLocations;	// To Do: add {ConVec,build area} pairs to this when issuing a new build order, to prevent ConVecs tripping over each other.  Remove entries when construction happens or a ConVec dies.  Build area should only cover the actual building, not the bulldozed padding around it.
+	//std::map<ConVec, MAP_RECT, decltype(ConVecCompare)*> units_plannedLabLocations;	// To Do: add {ConVec,build area} pairs to this when issuing a new build order, to prevent ConVecs tripping over each other.  Remove entries when construction happens or a ConVec dies.  Build area should only cover the actual building, not the bulldozed padding around it.
 };

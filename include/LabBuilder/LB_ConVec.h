@@ -20,6 +20,8 @@ public:
 	UnitEx GetHandle() { return CV; }
 	bool IsDebug() { return debug; }
 
+	bool operator <(const ConVec& B) { return (this->CV.unitID < B.CV.unitID); }
+
 private:
 	LOCATION GetNextLabSpot(LOCATION searchFrom);
 
