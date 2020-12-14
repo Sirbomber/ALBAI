@@ -31,13 +31,11 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 	if (fdwReason == DLL_PROCESS_ATTACH) 
 	{
 		if (HFLInit() == HFLCANTINIT
-			|| !SetMissionEndHook(true, MissionEnd)
-			|| !SetNukePatch(true))
+			|| !SetMissionEndHook(true, MissionEnd))
 		{
 			return false;
 		}
 
-		DisableThreadLibraryCalls(hinstDLL);
 		g_hInst = hInstDLL = hinstDLL;				// This needs to get set for cutscenes to properly blank out the rest of the window at mission end.
 	}
 	else if (fdwReason == DLL_PROCESS_DETACH)
@@ -47,7 +45,6 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 
 		HFLCleanup();
 		SetMissionEndHook(false, NULL);
-		SetNukePatch(false);
 	}
 
 	return TRUE;
@@ -86,11 +83,37 @@ Export int InitProc()
 
 	LB.AnalyzeMap();
 
-// Player base setup
+#ifndef _DEBUG
+	
+	// Player base setup
 	DoRandomBases(LB.GetPlayerNum());
 	CreateTimeTrigger(1, 1, 399, "BlowIntroLabs");
 	CreateCountTrigger(1, 0, -1, mapConVec, mapAtheistBuildingExplosion, 1, cmpGreaterEqual, "NoFun");
 	DoQuickTestOre();
+
+	// ** TESTING  - Test base placements + additional ConVecs.  Comment out/remove for actual release build! **
+	/*
+	SetupBase1(0, LB.GetPlayerNum());
+	Player[0].GoEden();
+	SetupBase2(0, LB.GetPlayerNum());
+	Player[0].GoPlymouth();
+	SetupBase3(0, LB.GetPlayerNum());
+	Player[0].GoEden();
+	SetupBase4(0, LB.GetPlayerNum());
+	Player[0].GoPlymouth();
+	SetupBase5(0, LB.GetPlayerNum());
+	Player[0].GoEden();
+
+	Unit x;
+	map_id testkits[] = { mapCommandCenter,mapStructureFactory,mapCommonOreSmelter,mapTokamak,mapAgridome,mapMagmaWell };
+	for (int i = 0; i < 6; i++)
+	{
+		TethysGame::CreateUnit(x, mapConVec, LOCATION(253 + i, 123), 0, mapAdvancedLab, 0);
+		x.DoSetLights(1);
+		TethysGame::CreateUnit(x, mapConVec, LOCATION(253 + i, 124), 0, testkits[i], 0);
+		x.DoSetLights(1);
+	}
+	*/
 
 	// Morale
 	TethysGame::ForceMoraleGood(-1);
@@ -132,6 +155,131 @@ Export int InitProc()
 	CreateTimeTrigger(1, 1, 41000, "Labs7");
 	CreateTimeTrigger(1, 1, 60000, "LabsFinal");
 
+#else
+		TethysGame::ForceMoraleGreat(-1);
+		CreateCountTrigger(1, 0, -1, mapConVec, mapAtheistBuildingExplosion, 1, cmpGreaterEqual, "NoFun");
+
+		UnitEx Unit1,
+			COS, COM, ROS, ROM;
+		Player[0].CenterViewOn(107 - 1, 100 - 1);
+		Player[0].GoEden();
+		Player[0].SetWorkers(60);
+		Player[0].SetScientists(45);
+		Player[0].SetKids(35);
+		Player[0].SetFoodStored(20000);
+		Player[0].SetTechLevel(13);
+
+		TethysGame::CreateBeacon(mapMiningBeacon, 114 - 1, 106 - 1, 0, 0, 0);
+		TethysGame::CreateBeacon(mapMiningBeacon, 94 - 1, 112 - 1, 1, 0, 0);
+		TethysGame::CreateBeacon(mapFumarole, 122 - 1, 91 - 1, -1, -1, -1);
+
+		TethysGame::CreateUnit(Unit1, mapCommandCenter, LOCATION(107 - 1, 100 - 1), 0, mapNone, 0);
+		TethysGame::CreateUnit(COM, mapCommonOreMine, LOCATION(115 - 1, 106 - 1), 0, mapNone, 0);
+		TethysGame::CreateUnit(Unit1, mapGeothermalPlant, LOCATION(122 - 1, 91 - 1), 0, mapNone, 0);
+		TethysGame::CreateUnit(Unit1, mapAgridome, LOCATION(111 - 1, 100 - 1), 0, mapNone, 0);
+		TethysGame::CreateUnit(Unit1, mapAgridome, LOCATION(111 - 1, 97 - 1), 0, mapNone, 0);
+		TethysGame::CreateUnit(Unit1, mapAgridome, LOCATION(107 - 1, 94 - 1), 0, mapNone, 0);
+		TethysGame::CreateUnit(Unit1, mapAgridome, LOCATION(111 - 1, 94 - 1), 0, mapNone, 0);
+		TethysGame::CreateUnit(Unit1, mapBasicLab, LOCATION(115 - 1, 100 - 1), 0, mapNone, 0);
+		TethysGame::CreateUnit(Unit1, mapMedicalCenter, LOCATION(115 - 1, 97 - 1), 0, mapNone, 0);
+		TethysGame::CreateUnit(Unit1, mapMedicalCenter, LOCATION(104 - 1, 94 - 1), 0, mapNone, 0);
+		TethysGame::CreateUnit(Unit1, mapMedicalCenter, LOCATION(115 - 1, 94 - 1), 0, mapNone, 0);
+		TethysGame::CreateUnit(COS, mapCommonOreSmelter, LOCATION(111 - 1, 103 - 1), 0, mapNone, 0);
+		TethysGame::CreateUnit(Unit1, mapCommonOreSmelter, LOCATION(111 - 1, 107 - 1), 0, mapNone, 0);
+		TethysGame::CreateUnit(Unit1, mapCommonOreSmelter, LOCATION(116 - 1, 103 - 1), 0, mapNone, 0);
+		TethysGame::CreateUnit(Unit1, mapStructureFactory, LOCATION(106 - 1, 103 - 1), 0, mapNone, 0);
+		Unit1.SetFactoryCargo(0, mapAtheistBuildingExplosion, mapNone);
+		TethysGame::CreateUnit(Unit1, mapVehicleFactory, LOCATION(106 - 1, 107 - 1), 0, mapNone, 0);
+		TethysGame::CreateUnit(Unit1, mapStandardLab, LOCATION(107 - 1, 97 - 1), 0, mapNone, 0);
+		TethysGame::CreateUnit(Unit1, mapNursery, LOCATION(104 - 1, 100 - 1), 0, mapNone, 0);
+		TethysGame::CreateUnit(Unit1, mapUniversity, LOCATION(104 - 1, 97 - 1), 0, mapNone, 0);
+
+		CreateTubeOrWallLine(101 - 1, 111 - 1, 119 - 1, 111 - 1, mapWall);
+		CreateTubeOrWallLine(83 - 1, 97- 1, 83 - 1, 117 - 1, mapWall);
+		CreateTubeOrWallLine(86 - 1, 96 - 1, 99 - 1, 96 - 1, mapWall);
+		CreateTubeOrWallLine(120 - 1, 94 - 1, 120 - 1, 108 - 1, mapWall);
+		CreateTubeOrWallLine(100 - 1, 94 - 1, 100 - 1, 90 - 1, mapWall);
+		CreateTubeOrWallLine(103 - 1, 90 - 1, 117 - 1, 90 - 1, mapWall);
+		CreateTubeOrWallLine(85 - 1, 117 - 1, 98 - 1, 117 - 1, mapWall);
+		CreateTubeOrWallLine(99 - 1, 109 - 1, 99 - 1, 115 - 1, mapWall);
+		CreateTubeOrWallLine(98 - 1, 105 - 1, 98 - 1,  98 - 1, mapWall);
+
+		Player[0].SetOre(14000);
+		TethysGame::CreateUnit(Unit1, mapConVec, LOCATION(107 - 1, 104 - 1), 0, mapNone, 0);
+		Unit1.DoSetLights(1);
+		TethysGame::CreateUnit(Unit1, mapConVec, LOCATION(107 - 1, 105 - 1), 0, mapNone, 0);
+		Unit1.DoSetLights(1);
+		TethysGame::CreateUnit(Unit1, mapConVec, LOCATION(107 - 1, 106 - 1), 0, mapNone, 0);
+		Unit1.DoSetLights(1);
+		TethysGame::CreateUnit(Unit1, mapConVec, LOCATION(116 - 1, 101 - 1), 0, mapNone, 3);
+		Unit1.DoSetLights(1);
+		TethysGame::CreateUnit(Unit1, mapCargoTruck, LOCATION(113 - 1, 106 - 1), 0, mapNone, 0);
+		Unit1.DoSetLights(1);
+		Unit1.DoCargoRoute(COM, COS);
+		//Unit1.SetTruckCargo(truckCommonMetal, 2000);
+		TethysGame::CreateUnit(Unit1, mapCargoTruck, LOCATION(113 - 1, 107 - 1), 0, mapNone, 0);
+		Unit1.DoSetLights(1);
+		Unit1.DoCargoRoute(COM, COS);
+		//Unit1.SetTruckCargo(truckCommonMetal, 2000);
+		TethysGame::CreateUnit(Unit1, mapRoboMiner, LOCATION(118 - 1, 102 - 1), 0, mapNone, 0);
+		Unit1.DoSetLights(1);
+		TethysGame::CreateUnit(Unit1, mapRoboSurveyor, LOCATION(118 - 1, 103 - 1), 0, mapNone, 0);
+		Unit1.DoSetLights(1);
+		TethysGame::CreateUnit(Unit1, mapEarthworker, LOCATION(118 - 1, 104 - 1), 0, mapNone, 0);
+		Unit1.DoSetLights(1);
+
+		TethysGame::CreateUnit(Unit1, mapLynx, LOCATION(98 - 1, 98 - 1), 0, mapEMP, 0);
+		Unit1.DoSetLights(1);
+		TethysGame::CreateUnit(Unit1, mapLynx, LOCATION(99 - 1, 98 - 1), 0, mapRPG, 0);
+		OP2Unit *internalUnit;
+		internalUnit = &(*unitArray)[Unit1.unitID];
+		internalUnit->flags &= ~UNIT_ISEDEN;
+
+		Unit1.DoSetLights(1);
+
+		TethysGame::CreateUnit(ROS, mapRareOreSmelter, LOCATION(90 - 1, 109 - 1), 0, mapNone, 0);
+		TethysGame::CreateUnit(Unit1, mapRareOreSmelter, LOCATION(95 - 1, 109 - 1), 0, mapNone, 0);
+		TethysGame::CreateUnit(Unit1, mapRareOreSmelter, LOCATION(90 - 1, 113 - 1), 0, mapNone, 0);
+		TethysGame::CreateUnit(ROM, mapCommonOreMine, LOCATION(94 - 1, 112 - 1), 0, mapNone, 0);
+		CreateTubeOrWallLine(91 - 1, 107 - 1, 103 - 1, 104 - 1, mapTube);
+		CreateTubeOrWallLine(90 - 1, 104 - 1, 91 - 1, 106 - 1, mapTube);
+		Player[0].SetRareOre(12000);
+
+		TethysGame::CreateUnit(Unit1, mapCargoTruck, LOCATION(91 - 1, 111 - 1), 0, mapNone, 0);
+		Unit1.DoSetLights(1);
+		Unit1.DoCargoRoute(ROM, ROS);
+		TethysGame::CreateUnit(Unit1, mapCargoTruck, LOCATION(92 - 1, 111 - 1), 0, mapNone, 0);
+		Unit1.DoSetLights(1);
+		Unit1.DoCargoRoute(ROM, ROS);
+
+
+		TethysGame::CreateUnit(Unit1, mapSpaceport, LOCATION(90 - 1, 101 - 1), 0, mapNone, 0);
+		Unit1.SetFactoryCargo(0, mapHabitatRing, mapNone);
+		Unit1.SetFactoryCargo(1, mapStasisSystems, mapNone);
+		Unit1.SetFactoryCargo(2, mapIonDriveModule, mapNone);
+		Unit1.SetFactoryCargo(3, mapCommonMetalsCargo, mapNone);
+		Unit1.SetFactoryCargo(4, mapRareMetalsCargo, mapNone);
+		ExtPlayer[0].SetSatelliteCount(mapSolarSatellite, 3);
+		ExtPlayer[0].SetSatelliteCount(mapEDWARDSatellite, 1);
+		ExtPlayer[0].SetSatelliteCount(mapSkydock, 1);
+		ExtPlayer[0].SetSatelliteCount(mapFuelingSystems, 1);
+		
+		LB.SetSpawnDelay(600);
+		LB.SetDetonationDelay(100);
+		//LB.SetSpawnDelay(500);
+		//LB.SetDetonationDelay(2500);
+		//LB.SetSpawnCount(TethysGame::NoPlayers() + 1);
+		LB.SetSpawnCount(10);
+		LB.SetConVecStats(1, 16, 24);
+		LB.SetAdvancedLabStats(800);
+		LB.SetStructureBuildTime(mapMagmaWell, 200);
+		LB.SetPayloadBuilding(mapMagmaWell);
+		CreateTimeTrigger(1, 0, 4, "LB_UpdateCycle");
+
+		// Debug ConVec
+		LB.CreateDebugConVec(LOCATION(108 - 1, 86 - 1));
+#endif
+
 	// Victory/Defeat conditions
 	SetupVictory();
 
@@ -148,6 +296,7 @@ Export int InitProc()
 Export void DisasterCreator_Callback()
 {
 	DC.RollRandom();
+	//DC.CheckVolcanoes();
 }
 
 Export void AIProc() 
